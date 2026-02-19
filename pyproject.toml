@@ -1,0 +1,42 @@
+[project]
+name = "pretix-google-events-sd"
+dynamic = ["version"]
+description = "Inject Google structured data for better search listings"
+readme = "README.rst"
+license = {text = "Apache"}
+keywords = ["pretix"]
+authors = [
+    {name = "Daniel Malik <mail@fronbasal.de>", email = "your-email@example.org"},
+]
+maintainers = [
+    {name = "Daniel Malik <mail@fronbasal.de>", email = "your-email@example.org"},
+]
+
+dependencies = [
+]
+
+[project.entry-points."pretix.plugin"]
+pretix_google_events = "pretix_google_events:PretixPluginMeta"
+
+[project.entry-points."distutils.commands"]
+build = "pretix_plugin_build.build:CustomBuild"
+
+[build-system]
+requires = [
+    "setuptools",
+    "pretix-plugin-build",
+]
+
+[project.urls]
+homepage = "https://github.com/fronbasal/pretix-google-events-sd"
+repository = "https://github.com/fronbasal/pretix-google-events-sd"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.dynamic]
+version = {attr = "pretix_google_events.__version__"}
+
+[tool.setuptools.packages.find]
+include = ["pretix*"]
+namespaces = false

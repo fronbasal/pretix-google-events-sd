@@ -1,0 +1,361 @@
+{% extends "pretixcontrol/event/settings_base.html" %}
+{% load bootstrap3 %}
+{% load i18n %}
+
+{% block title %}{% trans "Google Event structured data" %}{% endblock %}
+
+{% block inside %}
+<h1>{% trans "Google Event structured data" %}</h1>
+
+<form action="" method="post" class="form-horizontal" enctype="multipart/form-data">
+    {% csrf_token %}
+    {% bootstrap_form_errors form %}
+
+    <div class="tabbed-form">
+        <fieldset id="s-plugin-status">
+            <legend>{% trans "Plugin status" %}</legend>
+            {% bootstrap_field form.google_events_sd_enabled layout="control" %}
+        </fieldset>
+
+        <fieldset id="s-event-basics">
+            <legend>{% trans "Event basics" %}</legend>
+            {% bootstrap_field form.google_events_sd_override_name layout="control" %}
+            {% bootstrap_field form.google_events_sd_name layout="control" %}
+            {% bootstrap_field form.google_events_sd_override_description layout="control" %}
+            {% bootstrap_field form.google_events_sd_description layout="control" %}
+            {% bootstrap_field form.google_events_sd_override_performer_name layout="control" %}
+            {% bootstrap_field form.google_events_sd_performer_name layout="control" %}
+            <div class="form-group">
+                <div class="col-md-9 col-md-offset-3">
+                    <p class="help-block">
+                        {% trans "The performer is the artist, band, or speaker at the event." %}
+                    </p>
+                </div>
+            </div>
+        </fieldset>
+
+        <fieldset id="s-event-media">
+            <legend>{% trans "Event media & status" %}</legend>
+            {% bootstrap_field form.google_events_sd_override_image layout="control" %}
+            {% bootstrap_field form.google_events_sd_image layout="control" %}
+            {% bootstrap_field form.google_events_sd_override_event_status layout="control" %}
+            {% bootstrap_field form.google_events_sd_event_status layout="control" %}
+            {% bootstrap_field form.google_events_sd_override_attendance_mode layout="control" %}
+            {% bootstrap_field form.google_events_sd_attendance_mode layout="control" %}
+        </fieldset>
+
+        <fieldset id="s-venue-location">
+            <legend>{% trans "Venue & Location" %}</legend>
+            {% bootstrap_field form.google_events_sd_override_location_name layout="control" %}
+            {% bootstrap_field form.google_events_sd_location_name layout="control" %}
+            {% bootstrap_field form.google_events_sd_override_location_address layout="control" %}
+            {% bootstrap_field form.google_events_sd_location_street layout="control" %}
+            {% bootstrap_field form.google_events_sd_location_locality layout="control" %}
+            {% bootstrap_field form.google_events_sd_location_region layout="control" %}
+            {% bootstrap_field form.google_events_sd_location_postal layout="control" %}
+            {% bootstrap_field form.google_events_sd_location_country layout="control" %}
+            <div class="form-group">
+                <div class="col-md-9 col-md-offset-3">
+                    <p class="help-block">
+                        {% trans "You can enter the venue's address in the Street address field. Multi-line German format (with newlines) will be automatically parsed." %}
+                    </p>
+                </div>
+            </div>
+        </fieldset>
+
+        <fieldset id="s-organizer">
+            <legend>{% trans "Organizer" %}</legend>
+            {% bootstrap_field form.google_events_sd_override_organizer_name layout="control" %}
+            {% bootstrap_field form.google_events_sd_organizer_name layout="control" %}
+            {% bootstrap_field form.google_events_sd_override_organizer_url layout="control" %}
+            {% bootstrap_field form.google_events_sd_organizer_url layout="control" %}
+            <div class="form-group">
+                <div class="col-md-9 col-md-offset-3">
+                    <p class="help-block">
+                        {% trans "The organizer's website helps Google verify your event details." %}
+                    </p>
+                </div>
+            </div>
+        </fieldset>
+
+        <fieldset id="s-offers-global">
+            <legend>{% trans "Offers" %}</legend>
+            <div class="form-group">
+                <div class="col-md-9 col-md-offset-3">
+                    <div class="alert alert-info">
+                        <strong>{% trans "Global offer settings" %}</strong><br />
+                        {% trans "These settings apply to all active tickets unless overridden per ticket below." %}
+                    </div>
+                </div>
+            </div>
+            {% bootstrap_field form.google_events_sd_override_offer_price layout="control" %}
+            {% bootstrap_field form.google_events_sd_offer_price layout="control" %}
+            {% bootstrap_field form.google_events_sd_override_offer_currency layout="control" %}
+            {% bootstrap_field form.google_events_sd_offer_currency layout="control" %}
+            {% bootstrap_field form.google_events_sd_override_offer_availability layout="control" %}
+            {% bootstrap_field form.google_events_sd_offer_availability layout="control" %}
+            {% bootstrap_field form.google_events_sd_override_offer_url layout="control" %}
+            {% bootstrap_field form.google_events_sd_offer_url layout="control" %}
+            {% bootstrap_field form.google_events_sd_override_offer_valid_from layout="control" %}
+            {% bootstrap_field form.google_events_sd_offer_valid_from layout="control" %}
+        </fieldset>
+
+        <fieldset id="s-offers-per-item">
+            <legend>{% trans "Per-ticket overrides" %}</legend>
+            <div class="form-group">
+                <div class="col-md-9 col-md-offset-3">
+                    <p class="help-block">
+                        {% trans "Override pricing and availability for individual tickets. Check 'Ignore' to exclude a ticket from structured data. Leave fields blank to use global settings." %}
+                    </p>
+                    <p class="help-block">
+                        <small>{% trans "Note: Items that are not admission/entry tickets or require vouchers are ignored by default." %}</small>
+                    </p>
+                </div>
+            </div>
+            {% if active_items %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Ticket / Variation" %}</th>
+                            <th>{% trans "Ignore" %}</th>
+                            <th>{% trans "Price" %}</th>
+                            <th>{% trans "Currency" %}</th>
+                            <th>{% trans "Availability" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in active_items %}
+                        <tr>
+                            <td><small>{{ item.name }}</small></td>
+                            <td>
+                                <input
+                                    type="checkbox"
+                                    data-item-id="{{ item.item_id }}"
+                                    data-variation-id="{{ item.variation_id }}"
+                                    data-override-type="ignore"
+                                    data-default-ignore="{{ item.ignore_default|yesno:'true,false' }}"
+                                    {% if item.ignore_default %}checked{% endif %}
+                                />
+                            </td>
+                            <td>
+                                <input
+                                    type="text"
+                                    class="form-control input-sm"
+                                    placeholder="{{ item.price }}"
+                                    data-item-id="{{ item.item_id }}"
+                                    data-variation-id="{{ item.variation_id }}"
+                                    data-override-type="price"
+                                />
+                            </td>
+                            <td>
+                                <input
+                                    type="text"
+                                    class="form-control input-sm"
+                                    placeholder="{{ request.event.currency }}"
+                                    data-item-id="{{ item.item_id }}"
+                                    data-variation-id="{{ item.variation_id }}"
+                                    data-override-type="currency"
+                                />
+                            </td>
+                            <td>
+                                <select
+                                    class="form-control input-sm"
+                                    data-item-id="{{ item.item_id }}"
+                                    data-variation-id="{{ item.variation_id }}"
+                                    data-override-type="availability"
+                                >
+                                    <option value="">{% trans "Use global setting" %}</option>
+                                    <option value="https://schema.org/InStock">{% trans "In stock" %}</option>
+                                    <option value="https://schema.org/SoldOut">{% trans "Sold out" %}</option>
+                                    <option value="https://schema.org/PreOrder">{% trans "Pre-order" %}</option>
+                                </select>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="form-group">
+                <div class="col-md-9 col-md-offset-3">
+                    <p class="help-block">
+                        {% trans "No active tickets available for override." %}
+                    </p>
+                </div>
+            </div>
+            {% endif %}
+        </fieldset>
+
+        <fieldset id="s-preview">
+            <legend>{% trans "Structured data preview" %}</legend>
+            <div class="form-group">
+                <div class="col-md-9 col-md-offset-3">
+                    <a class="btn btn-default" href="?preview_refresh=1">
+                        <span class="fa fa-refresh"></span>
+                        {% trans "Refresh preview" %}
+                    </a>
+                    <button type="button" class="btn btn-default" data-copy-target="#structured-data-preview">
+                        <span class="fa fa-clipboard"></span>
+                        {% trans "Copy JSON-LD" %}
+                    </button>
+                </div>
+            </div>
+            {% if structured_data_errors %}
+            <div class="form-group">
+                <div class="col-md-9 col-md-offset-3">
+                    <div class="alert alert-warning">
+                        <strong>{% trans "Validation warnings" %}</strong>
+                        <ul class="list-unstyled">
+                            {% for error in structured_data_errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            {% if structured_data_preview %}
+            <div class="form-group">
+                <div class="col-md-9 col-md-offset-3">
+                    <pre id="structured-data-preview" class="pre-scrollable" style="max-height: 400px;">{{ structured_data_preview }}</pre>
+                </div>
+            </div>
+            {% else %}
+            <div class="form-group">
+                <div class="col-md-9 col-md-offset-3">
+                    <p class="help-block">{% trans "No preview available yet." %}</p>
+                </div>
+            </div>
+            {% endif %}
+        </fieldset>
+    </div>
+
+    <div class="form-group submit-group">
+        <button type="submit" class="btn btn-primary btn-save">
+            {% trans "Save" %}
+        </button>
+    </div>
+
+    <!-- Hidden field for per-item overrides JSON -->
+    <input type="hidden" name="google_events_sd_item_overrides" value="" />
+</form>
+
+<script>
+    (function () {
+        function copyText(text) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                return navigator.clipboard.writeText(text);
+            }
+            var textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.setAttribute('readonly', '');
+            textarea.style.position = 'absolute';
+            textarea.style.left = '-9999px';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+            } finally {
+                document.body.removeChild(textarea);
+            }
+            return Promise.resolve();
+        }
+
+        var button = document.querySelector('[data-copy-target]');
+        if (button) {
+            button.addEventListener('click', function () {
+                var target = document.querySelector(button.getAttribute('data-copy-target'));
+                if (target) {
+                    copyText(target.innerText || target.textContent || '');
+                }
+            });
+        }
+
+        // Load existing overrides from hidden field
+        var form = document.querySelector('form[method="post"]');
+        if (form) {
+            var hiddenField = form.querySelector('input[name="google_events_sd_item_overrides"]');
+            if (hiddenField && hiddenField.value) {
+                try {
+                    var overrides = JSON.parse(hiddenField.value);
+                    for (var key in overrides) {
+                        var override = overrides[key];
+                        for (var overrideType in override) {
+                            var value = override[overrideType];
+                            var parts = key.split('-');
+                            var itemId = parts[0];
+                            var variationId = parts.length > 1 ? parts[1] : '';
+                            
+                            var selector = '[data-item-id="' + itemId + '"]';
+                            if (variationId) {
+                                selector += '[data-variation-id="' + variationId + '"]';
+                            }
+                            selector += '[data-override-type="' + overrideType + '"]';
+                            
+                            var input = form.querySelector(selector);
+                            if (input) {
+                                if (input.type === 'checkbox') {
+                                    input.checked = (value === 'true');
+                                } else {
+                                    input.value = value;
+                                }
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.error('Failed to parse item overrides:', e);
+                }
+            } else {
+                // No saved overrides - apply defaults to checkboxes not explicitly unchecked
+                var ignoreCheckboxes = form.querySelectorAll('input[type="checkbox"][data-override-type="ignore"]');
+                ignoreCheckboxes.forEach(function(checkbox) {
+                    var defaultIgnore = checkbox.getAttribute('data-default-ignore') === 'true';
+                    if (defaultIgnore) {
+                        checkbox.checked = true;
+                    }
+                });
+            }
+        }
+
+        // Collect per-item overrides on form submission
+        if (form) {
+            form.addEventListener('submit', function (e) {
+                var overrides = {};
+                var tableInputs = document.querySelectorAll('input[data-item-id], select[data-item-id]');
+
+                tableInputs.forEach(function (input) {
+                    var itemId = input.getAttribute('data-item-id');
+                    var variationId = input.getAttribute('data-variation-id');
+                    var overrideType = input.getAttribute('data-override-type');
+                    var value;
+                    
+                    // Handle checkbox for ignore field
+                    if (input.type === 'checkbox') {
+                        // Always save the state for ignore checkboxes (to override defaults)
+                        value = input.checked ? 'true' : 'false';
+                    } else {
+                        value = input.value.trim();
+                        // Skip empty values for non-checkbox inputs
+                        if (!value) {
+                            return;
+                        }
+                    }
+
+                    var key = variationId ? itemId + '-' + variationId : itemId;
+                    if (!overrides[key]) {
+                        overrides[key] = {};
+                    }
+                    overrides[key][overrideType] = value;
+                });
+
+                var hiddenField = form.querySelector('input[name="google_events_sd_item_overrides"]');
+                if (hiddenField) {
+                    hiddenField.value = JSON.stringify(overrides);
+                }
+            });
+        }
+    })();
+</script>
+
+{% endblock %}

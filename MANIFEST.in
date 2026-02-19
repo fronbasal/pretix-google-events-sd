@@ -1,0 +1,5 @@
+recursive-include pretix_google_events/static *
+recursive-include pretix_google_events/templates *
+recursive-include pretix_google_events/locale *
+include LICENSE
+exclude .gitlab-ci.yml

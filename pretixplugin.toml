@@ -1,0 +1,5 @@
+[plugin]
+package = "pretix-google-events-sd"
+modules = [ "pretix_google_events" ]
+marketplace_name = "google-events-sd"
+
